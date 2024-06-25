@@ -1,3 +1,5 @@
+$ErrorActionPreference = "Stop"
+
 & ./package.ps1
 
 cd ./terraform
