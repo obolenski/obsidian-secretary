@@ -16,3 +16,5 @@ Remove-Item -Path "python" -Recurse -Force
 cd $scriptDir
 
 Compress-Archive -Path "./lambda/main/*" -DestinationPath "./lambda/lambda.zip" -Force
+
+docker image prune -f 
