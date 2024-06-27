@@ -4,12 +4,14 @@ from datetime import datetime
 import urllib.parse
 import requests
 from github_interaction import write_file
+from pytz import timezone
 
 allowed_chat_id = os.environ['telegram_chat_id']
 telegram_token = os.environ['telegram_token']
 telegram_base_url = f"https://api.telegram.org/bot{telegram_token}"
 
-ok = { "statusCode": 200 }
+CET = timezone('CET')
+OK = { "statusCode": 200 }
 
 def lambda_handler(event, context):
     request_body = json.loads(event['body'])
@@ -19,30 +21,26 @@ def lambda_handler(event, context):
     if str(chat_id) != str(allowed_chat_id):
         send_message(f"someone is bothering us - {chat_id}", allowed_chat_id)
         print(f"Unauthorized chat_id: {chat_id}")
-        return ok
+        return OK
     
     if message.startswith("/"):
-        return ok
+        return OK
 
     res = make_freestyle_note(message)
     send_message(res, allowed_chat_id)
     
-    return ok
+    return OK
 
 def make_freestyle_note(message):
-    timestamp = datetime.now()
-    filename = timestamp.strftime("%Y%m%d-%H%M%S.md")
+    timestamp = datetime.now(CET)
+    filename = timestamp.strftime("%Y-%m-%d_%H-%M-%S.md")
 
-    frontmatter = """---
-bot: telegram
-tags:
-  - bot
----
+    with open('frontmatter.md', 'r') as file:
+        frontmatter = file.read()
 
-"""
-    message_with_frontmatter = frontmatter + message
+    file_contents = frontmatter + message
 
-    res = write_file(message_with_frontmatter, filename)
+    res = write_file(file_contents, filename)
     return res
 
 def send_message(text, target_chat_id):
